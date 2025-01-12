@@ -52,6 +52,22 @@ document.addEventListener('keyup', (event) => {
     if (event.key === ' ') keys.space = false;
 });
 
+// Các biến cho điểm số
+let score = 0;
+const scoreElement = document.getElementById('score');
+const gameOverElement = document.getElementById('gameOver');
+
+// Hàm cập nhật điểm số
+function updateScore() {
+    score += 1; // Tăng điểm mỗi khi nhảy qua vật cản (hoặc thêm logic của bạn)
+    scoreElement.innerText = `Score: ${score}`;
+}
+
+// Hàm để hiển thị Game Over
+function gameOver() {
+    gameOverElement.style.display = 'block';
+}
+
 // Hàm cập nhật logic game
 function update() {
     // Xử lý chuyển động
@@ -75,6 +91,14 @@ function update() {
             cube.position.y = 0;
             isJumping = false;
         }
+    }
+
+    // Cập nhật điểm số
+    updateScore();
+
+    // Kiểm tra Game Over (nếu cần)
+    if (cube.position.y <= 0) {
+        gameOver();
     }
 
     // Render cảnh
