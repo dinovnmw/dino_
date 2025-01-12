@@ -1,120 +1,88 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// Khởi tạo cảnh và camera
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-// Các đối tượng stickman và kẻ thù
-const stickman1 = {
-    x: 100,
-    y: 500,
-    width: 50,
-    height: 100,
-    color: 'blue',
-    dx: 5,
-    health: 100,
-    isMovingLeft: false,
-    isMovingRight: false,
-    isAttacking: false,
-    attackRange: 60
+// Khởi tạo renderer
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Tạo mặt đất và các vật thể trong thế giới
+const geometry = new THREE.BoxGeometry(1, 1, 1); // Kích thước của hộp
+const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Màu của vật thể
+const cube = new THREE.Mesh(geometry, material); // Vật thể cube
+scene.add(cube);
+
+const groundGeometry = new THREE.PlaneGeometry(500, 500, 32, 32);
+const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = - Math.PI / 2; // Xoay mặt đất cho phẳng
+scene.add(ground);
+
+// Đặt camera
+camera.position.z = 5;
+
+// Các biến điều khiển
+let isJumping = false;
+let velocityY = 0;
+const gravity = -0.1; // Lực hấp dẫn
+
+// Tạo các phím điều khiển
+const keys = {
+    w: false,
+    a: false,
+    s: false,
+    d: false,
+    space: false
 };
 
-const enemy = {
-    x: 600,
-    y: 500,
-    width: 50,
-    height: 100,
-    color: 'red',
-    dx: 3,
-    health: 100,
-    isAttacking: false,
-    attackRange: 60
-};
-
-// Vẽ stickman và kẻ thù
-function drawCharacter(character) {
-    ctx.fillStyle = character.color;
-    ctx.fillRect(character.x, character.y, character.width, character.height);
-}
-
-// Kiểm tra va chạm
-function checkCollision(character1, character2) {
-    return (
-        character1.x < character2.x + character2.width &&
-        character1.x + character1.width > character2.x &&
-        character1.y < character2.y + character2.height &&
-        character1.y + character1.height > character2.y
-    );
-}
-
-// Cập nhật vị trí và trạng thái
-function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Di chuyển Stickman 1
-    if (stickman1.isMovingLeft) stickman1.x -= stickman1.dx;
-    if (stickman1.isMovingRight) stickman1.x += stickman1.dx;
-
-    // Di chuyển kẻ thù
-    if (enemy.x < stickman1.x) {
-        enemy.x += enemy.dx;
-    } else if (enemy.x > stickman1.x) {
-        enemy.x -= enemy.dx;
-    }
-
-    // Tấn công Stickman 1
-    if (stickman1.isAttacking) {
-        if (checkCollision(stickman1, enemy)) {
-            enemy.health -= 10;
-        }
-    }
-
-    // Tấn công kẻ thù
-    if (enemy.isAttacking) {
-        if (checkCollision(enemy, stickman1)) {
-            stickman1.health -= 10;
-        }
-    }
-
-    // Vẽ Stickman 1 và kẻ thù
-    drawCharacter(stickman1);
-    drawCharacter(enemy);
-
-    // Hiển thị sức khỏe
-    ctx.fillStyle = 'black';
-    ctx.fillText(`Health: ${stickman1.health}`, 10, 20);
-    ctx.fillText(`Enemy Health: ${enemy.health}`, 600, 20);
-
-    requestAnimationFrame(update); // Gọi lại hàm update để vẽ liên tục
-}
-
-// Xử lý sự kiện bàn phím
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'a') {
-        stickman1.isMovingLeft = true;
-    }
-    if (event.key === 'd') {
-        stickman1.isMovingRight = true;
-    }
-    if (event.key === 'w') { // Tấn công stickman
-        stickman1.isAttacking = true;
-    }
-    if (event.key === 'ArrowLeft') {
-        enemy.isAttacking = true;
-    }
+    if (event.key === 'w') keys.w = true;
+    if (event.key === 'a') keys.a = true;
+    if (event.key === 's') keys.s = true;
+    if (event.key === 'd') keys.d = true;
+    if (event.key === ' ') keys.space = true;
 });
 
 document.addEventListener('keyup', (event) => {
-    if (event.key === 'a') {
-        stickman1.isMovingLeft = false;
-    }
-    if (event.key === 'd') {
-        stickman1.isMovingRight = false;
-    }
-    if (event.key === 'w') {
-        stickman1.isAttacking = false;
-    }
-    if (event.key === 'ArrowLeft') {
-        enemy.isAttacking = false;
-    }
+    if (event.key === 'w') keys.w = false;
+    if (event.key === 'a') keys.a = false;
+    if (event.key === 's') keys.s = false;
+    if (event.key === 'd') keys.d = false;
+    if (event.key === ' ') keys.space = false;
 });
 
-// Bắt đầu trò chơi
+// Hàm cập nhật logic game
+function update() {
+    // Xử lý chuyển động
+    if (keys.w) cube.position.z -= 0.1; // Di chuyển về phía trước
+    if (keys.s) cube.position.z += 0.1; // Di chuyển lùi lại
+    if (keys.a) cube.position.x -= 0.1; // Di chuyển sang trái
+    if (keys.d) cube.position.x += 0.1; // Di chuyển sang phải
+
+    // Xử lý nhảy
+    if (keys.space && !isJumping) {
+        isJumping = true;
+        velocityY = 0.5; // Tốc độ nhảy
+    }
+
+    // Tính toán trọng lực
+    if (isJumping) {
+        cube.position.y += velocityY;
+        velocityY += gravity; // Tăng tốc độ rơi
+
+        if (cube.position.y <= 0) {
+            cube.position.y = 0;
+            isJumping = false;
+        }
+    }
+
+    // Render cảnh
+    renderer.render(scene, camera);
+
+    // Lặp lại cập nhật
+    requestAnimationFrame(update);
+}
+
+// Bắt đầu game
 update();
