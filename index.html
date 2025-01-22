@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blox Fruit Shop</title>
+    <title>WormGPT Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,87 +11,100 @@
             padding: 0;
             background-color: #f4f4f4;
         }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: white;
             padding: 20px;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .product {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ccc;
-            padding: 10px 0;
+        .chat-box {
+            max-height: 400px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
         }
-        .product:last-child {
-            border-bottom: none;
+        .message {
+            margin: 10px 0;
         }
-        .product img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-        }
-        .product-info {
-            flex-grow: 1;
-            margin-left: 20px;
-        }
-        .product-title {
-            font-size: 18px;
-            margin: 0;
-        }
-        .product-price {
-            color: green;
-            margin: 5px 0;
-        }
-        .product-actions {
+        .user-message {
             text-align: right;
         }
-        .product-actions button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
+        .bot-message {
+            text-align: left;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
         }
-        .product-actions button:hover {
-            background-color: #218838;
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            width: 100%;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Blox Fruit Shop</h1>
-    </header>
-    <div class="container">
-        <div class="product">
-            <img src="https://via.placeholder.com/100" alt="Product 1">
-            <div class="product-info">
-                <h2 class="product-title">Fruit Name</h2>
-                <p class="product-price">$20</p>
-            </div>
-            <div class="product-actions">
-                <button>Add to Cart</button>
-            </div>
-        </div>
-        <div class="product">
-            <img src="https://via.placeholder.com/100" alt="Product 2">
-            <div class="product-info">
-                <h2 class="product-title">Fruit Name</h2>
-                <p class="product-price">$35</p>
-            </div>
-            <div class="product-actions">
-                <button>Add to Cart</button>
-            </div>
-        </div>
-    </div>
+
+<div class="chat-container">
+    <div class="chat-box" id="chatBox"></div>
+    <input type="text" id="userInput" placeholder="Gõ câu hỏi của bạn..." />
+    <button onclick="sendMessage()">Gửi</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const apiKey = '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';  // Đặt key của bạn vào đây
+
+    function sendMessage() {
+        const userInput = document.getElementById('userInput').value;
+        if (userInput.trim() === "") return;
+        
+        // Hiển thị tin nhắn của người dùng
+        appendMessage(userInput, 'user');
+        
+        // Gửi yêu cầu đến OpenAI API
+        $.ajax({
+            url: 'https://api.openai.com/v1/completions',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                model: "text-davinci-003",
+                prompt: userInput,
+                max_tokens: 150,
+                temperature: 0.7
+            }),
+            success: function(response) {
+                const botResponse = response.choices[0].text.trim();
+                appendMessage(botResponse, 'bot');
+            },
+            error: function(error) {
+                console.error("Error:", error);
+                appendMessage("Có lỗi xảy ra. Vui lòng thử lại.", 'bot');
+            }
+        });
+
+        document.getElementById('userInput').value = '';  // Xóa input sau khi gửi
+    }
+
+    function appendMessage(message, sender) {
+        const chatBox = document.getElementById('chatBox');
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', sender + '-message');
+        messageElement.innerText = message;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;  // Cuộn đến tin nhắn mới
+    }
+</script>
+
 </body>
 </html>
