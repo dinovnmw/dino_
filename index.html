@@ -1,110 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WormGPT Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .chat-container {
-            max-width: 600px;
-            margin: 50px auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .chat-box {
-            max-height: 400px;
-            overflow-y: scroll;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin: 10px 0;
-        }
-        .user-message {
-            text-align: right;
-        }
-        .bot-message {
-            text-align: left;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            width: 100%;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile của dinovnmw</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="container">
+    <div class="header">
+      <h1>Chào mừng đến với trang profile của dinovnmw</h1>
+    </div>
+    <div class="profile">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT84duQQ_t-dDUwjRLiDklSI9cwRxsnqGO93A&s" alt="Skin của dinovnmw" class="profile-img">
+      <div class="info">
+        <p><strong>Tên:</strong> dinovnmw</p>
+        <p><strong>Kênh YouTube:</strong> <a href="https://www.youtube.com/@dinovnmwvip" target="_blank">dinovnmwvip</a></p>
+        <p><strong>Discord:</strong> <a href="https://discord.gg/np69n73DQm" target="_blank">Truy cập Discord</a></p>
+        <p><strong>Cửa hàng:</strong> <a href="https://bloxdino.x10.mx/" target="_blank">bloxdino.x10.mx</a></p>
+      </div>
+    </div>
+    <footer>
+      <p>&copy; 2025 dinovnmw. Tất cả quyền được bảo vệ.</p>
+    </footer>
+  </div>
 
-<div class="chat-container">
-    <div class="chat-box" id="chatBox"></div>
-    <input type="text" id="userInput" placeholder="Gõ câu hỏi của bạn..." />
-    <button onclick="sendMessage()">Gửi</button>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    const apiKey = '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';  // Đặt key của bạn vào đây
-
-    function sendMessage() {
-        const userInput = document.getElementById('userInput').value;
-        if (userInput.trim() === "") return;
-        
-        // Hiển thị tin nhắn của người dùng
-        appendMessage(userInput, 'user');
-        
-        // Gửi yêu cầu đến OpenAI API
-        $.ajax({
-            url: 'https://api.openai.com/v1/completions',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({
-                model: "text-davinci-003",
-                prompt: userInput,
-                max_tokens: 150,
-                temperature: 0.7
-            }),
-            success: function(response) {
-                const botResponse = response.choices[0].text.trim();
-                appendMessage(botResponse, 'bot');
-            },
-            error: function(error) {
-                console.error("Error:", error);
-                appendMessage("Có lỗi xảy ra. Vui lòng thử lại.", 'bot');
-            }
-        });
-
-        document.getElementById('userInput').value = '';  // Xóa input sau khi gửi
-    }
-
-    function appendMessage(message, sender) {
-        const chatBox = document.getElementById('chatBox');
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', sender + '-message');
-        messageElement.innerText = message;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;  // Cuộn đến tin nhắn mới
-    }
-</script>
-
+  <script src="scripts.js"></script>
 </body>
 </html>
