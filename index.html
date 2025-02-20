@@ -6,14 +6,14 @@
     <title>Redirecting...</title>
     <script>
         window.onload = function() {
-            let newWin = window.open("key", "_blank", "width=800,height=600,noopener,noreferrer");
+            let newWin = window.open("about:blank", "_blank", "width=800,height=600,noopener,noreferrer");
             if (newWin) {
                 newWin.document.body.style.margin = "0";
                 newWin.document.body.style.height = "100vh";
                 newWin.document.body.innerHTML = '<iframe src="https://keydino.x10.mx/" style="border:none;width:100%;height:100vh;"></iframe>';
                 window.open("", "_self").close();
             } else {
-                alert("Can't show key! Please allow popups for this site.");
+                alert("Popup blocked! Please allow popups for this site.");
             }
         };
     </script>
