@@ -88,7 +88,6 @@
   <script>
     let audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let recorder;
-    let audioChunks = [];
 
     // Khởi tạo Recorder.js
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -99,21 +98,50 @@
       alert("Vui lòng cho phép truy cập micro để ghi âm!");
     });
 
+    function adjustSpeechForOnyx(speech, text) {
+      speech.lang = "vi-VN";
+      speech.volume = 1;
+
+      // Chia văn bản thành các câu để điều chỉnh pitch và rate
+      let sentences = text.split(/[.!?]+/).filter(s => s.trim());
+      let currentTime = 0;
+
+      sentences.forEach((sentence, index) => {
+        let utterance = new SpeechSynthesisUtterance(sentence.trim());
+        utterance.lang = "vi-VN";
+        utterance.volume = 1;
+
+        // Chọn giọng nam nếu có
+        let voices = window.speechSynthesis.getVoices();
+        let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+        if (maleVoice) {
+          utterance.voice = maleVoice;
+        }
+
+        // Điều chỉnh pitch và rate để mô phỏng ngữ điệu
+        if (index % 2 === 0) {
+          utterance.pitch = 0.3; // Giọng trầm cho câu chẵn
+          utterance.rate = 0.7;  // Chậm hơn, tạo cảm giác điềm tĩnh
+        } else {
+          utterance.pitch = 0.5; // Cao hơn một chút cho câu lẻ
+          utterance.rate = 0.85; // Nhanh hơn một chút
+        }
+
+        // Thêm khoảng dừng tự nhiên giữa các câu
+        utterance.onstart = () => {
+          setTimeout(() => window.speechSynthesis.speak(utterance), currentTime);
+        };
+        currentTime += (sentence.length * 50) + 200; // Thời gian dựa trên độ dài câu + nghỉ
+      });
+    }
+
     function speakText() {
       let text = document.getElementById("text").value;
       if (!text) return;
+
       let speech = new SpeechSynthesisUtterance(text);
-      speech.lang = "vi-VN";
-      speech.rate = 0.75;
-      speech.pitch = 0.35;
-      speech.volume = 1;
-      let voices = window.speechSynthesis.getVoices();
-      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
-      if (maleVoice) {
-        speech.voice = maleVoice;
-      }
-      window.speechSynthesis.speak(speech);
       showLoading();
+      adjustSpeechForOnyx(speech, text);
       speech.onend = hideLoading;
     }
 
@@ -122,27 +150,16 @@
       if (!text || !recorder) return;
 
       let speech = new SpeechSynthesisUtterance(text);
-      speech.lang = "vi-VN";
-      speech.rate = 0.75;
-      speech.pitch = 0.35;
-      speech.volume = 1;
-      let voices = window.speechSynthesis.getVoices();
-      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
-      if (maleVoice) {
-        speech.voice = maleVoice;
-      }
-
       showLoading();
-      recorder.clear(); // Xóa dữ liệu cũ
-      recorder.record(); // Bắt đầu ghi âm
-      window.speechSynthesis.speak(speech);
+      recorder.clear();
+      recorder.record();
+      adjustSpeechForOnyx(speech, text);
 
-      // Dừng ghi âm và tạo file tải xuống khi hoàn tất
       speech.onend = () => {
         recorder.stop();
         recorder.exportWAV(blob => {
           let url = URL.createObjectURL(blob);
-          let downloadLink = document.createElement("a");
+          let downloadLink = document.createObjectURL("a");
           downloadLink.href = url;
           downloadLink.download = "speech.wav";
           downloadLink.click();
