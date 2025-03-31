@@ -109,19 +109,20 @@
   <script>
     let audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let recorder;
+    let voicesLoaded = false;
 
-    // Hiệu ứng ngôi sao vũ trụ
+    // Hiệu ứng ngôi sao tối ưu
     const canvas = document.getElementById('stars');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     let stars = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 50; i++) { // Giảm số ngôi sao để tăng hiệu suất
       stars.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         radius: Math.random() * 2,
-        speed: Math.random() * 0.5
+        speed: Math.random() * 0.3
       });
     }
     function animateStars() {
@@ -138,6 +139,23 @@
     }
     animateStars();
 
+    // Tải trước danh sách giọng nói
+    function loadVoices() {
+      return new Promise(resolve => {
+        let voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          voicesLoaded = true;
+          resolve(voices);
+        } else {
+          window.speechSynthesis.onvoiceschanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            voicesLoaded = true;
+            resolve(voices);
+          };
+        }
+      });
+    }
+
     // Khởi tạo Recorder.js
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       let source = audioContext.createMediaStreamSource(stream);
@@ -147,77 +165,74 @@
       alert("Vui lòng cho phép truy cập micro để ghi âm!");
     });
 
-    function adjustSpeechForOnyx(speech, text) {
+    async function adjustSpeechForOnyx(speech, text) {
       speech.lang = "vi-VN";
-      speech.volume = 0.9; // Giảm nhẹ để tránh rè
+      speech.volume = 0.9;
 
-      // Tạo bộ lọc âm thanh để giọng mượt hơn
-      let gainNode = audioContext.createGain();
-      let biquadFilter = audioContext.createBiquadFilter();
-      biquadFilter.type = "lowpass"; // Lọc tần số cao để giảm rè
-      biquadFilter.frequency.value = 2000; // Giảm các tần số cao gây rè
-      gainNode.gain.value = 0.9;
+      // Đợi danh sách giọng nói tải xong
+      let voices = voicesLoaded ? window.speechSynthesis.getVoices() : await loadVoices();
+      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+      if (maleVoice) speech.voice = maleVoice;
 
-      // Chia văn bản thành câu để điều chỉnh
+      // Chia văn bản thành câu
       let sentences = text.split(/[.!?]+/).filter(s => s.trim());
-      let currentTime = 0;
-
       sentences.forEach((sentence, index) => {
         let utterance = new SpeechSynthesisUtterance(sentence.trim());
         utterance.lang = "vi-VN";
         utterance.volume = 0.9;
-
-        let voices = window.speechSynthesis.getVoices();
-        let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
         if (maleVoice) utterance.voice = maleVoice;
 
         // Điều chỉnh pitch và rate
-        if (index % 2 === 0) {
-          utterance.pitch = 0.3; // Trầm
-          utterance.rate = 0.7;  // Chậm
-        } else {
-          utterance.pitch = 0.5; // Cao hơn chút
-          utterance.rate = 0.85; // Nhanh hơn chút
-        }
+        utterance.pitch = index % 2 === 0 ? 0.3 : 0.5;
+        utterance.rate = index % 2 === 0 ? 0.7 : 0.85;
 
-        utterance.onstart = () => {
-          setTimeout(() => window.speechSynthesis.speak(utterance), currentTime);
-        };
-        currentTime += (sentence.length * 50) + 200;
+        window.speechSynthesis.speak(utterance); // Phát ngay lập tức
       });
     }
 
-    function speakText() {
+    async function speakText() {
       let text = document.getElementById("text").value;
       if (!text) return;
 
-      let speech = new SpeechSynthesisUtterance(text);
       showLoading();
-      adjustSpeechForOnyx(speech, text);
-      speech.onend = hideLoading;
+      let speech = new SpeechSynthesisUtterance(text);
+      try {
+        await adjustSpeechForOnyx(speech, text);
+      } catch (err) {
+        console.error("Lỗi khi phát âm thanh:", err);
+        alert("Không thể phát âm thanh. Vui lòng thử lại!");
+      } finally {
+        hideLoading();
+      }
     }
 
-    function downloadAudio() {
+    async function downloadAudio() {
       let text = document.getElementById("text").value;
       if (!text || !recorder) return;
 
-      let speech = new SpeechSynthesisUtterance(text);
       showLoading();
       recorder.clear();
       recorder.record();
-      adjustSpeechForOnyx(speech, text);
 
-      speech.onend = () => {
-        recorder.stop();
-        recorder.exportWAV(blob => {
-          let url = URL.createObjectURL(blob);
-          let downloadLink = document.createElement("a");
-          downloadLink.href = url;
-          downloadLink.download = "speech.wav";
-          downloadLink.click();
-          hideLoading();
-        });
-      };
+      let speech = new SpeechSynthesisUtterance(text);
+      try {
+        await adjustSpeechForOnyx(speech, text);
+        speech.onend = () => {
+          recorder.stop();
+          recorder.exportWAV(blob => {
+            let url = URL.createObjectURL(blob);
+            let downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = "speech.wav";
+            downloadLink.click();
+            hideLoading();
+          });
+        };
+      } catch (err) {
+        console.error("Lỗi khi ghi âm:", err);
+        alert("Không thể ghi âm. Vui lòng thử lại!");
+        hideLoading();
+      }
     }
 
     function showLoading() {
@@ -228,9 +243,8 @@
       document.getElementById("loading").style.display = "none";
     }
 
-    window.speechSynthesis.onvoiceschanged = function() {
-      window.speechSynthesis.getVoices();
-    };
+    // Tải voices ngay khi trang khởi động
+    loadVoices();
   </script>
 </body>
 </html>
