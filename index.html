@@ -3,75 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Text to Speech - Giọng Onyx</title>
+  <title>Text to Speech - Giọng Onyx Vũ Trụ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      margin: 0;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      background: linear-gradient(180deg, #0a0a23 0%, #1a1a3d 100%);
+      overflow: hidden;
+      font-family: 'Orbitron', sans-serif;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
     }
     .container {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      width: 450px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     h2 {
       text-align: center;
-      color: #333;
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffff;
     }
     textarea {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 15px;
+      border: 1px solid #00ffff;
+      border-radius: 10px;
       resize: none;
       font-size: 16px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      outline: none;
+    }
+    textarea::placeholder {
+      color: #aaa;
     }
     .button-group {
       display: flex;
       justify-content: space-between;
-      margin-top: 10px;
+      margin-top: 15px;
     }
     button {
-      padding: 10px 20px;
+      padding: 12px 25px;
       border: none;
-      border-radius: 5px;
-      background-color: #007bff;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #00ffff, #00b7ff);
       color: #fff;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     }
     button:hover {
-      background-color: #0056b3;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
     }
     .icon {
-      margin-right: 5px;
+      margin-right: 8px;
     }
     .loading {
       display: none;
       text-align: center;
-      margin-top: 10px;
+      margin-top: 15px;
     }
     .loading i {
-      font-size: 24px;
-      color: #007bff;
+      font-size: 28px;
+      color: #00ffff;
       animation: spin 1s linear infinite;
+      text-shadow: 0 0 5px #00ffff;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
   </style>
 </head>
 <body>
+  <canvas id="stars"></canvas>
   <div class="container">
     <h2>Nhập văn bản để đọc</h2>
     <textarea id="text" rows="5" placeholder="Nhập văn bản..."></textarea>
@@ -89,6 +110,34 @@
     let audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let recorder;
 
+    // Hiệu ứng ngôi sao vũ trụ
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let stars = [];
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2,
+        speed: Math.random() * 0.5
+      });
+    }
+    function animateStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(star => {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        star.y += star.speed;
+        if (star.y > canvas.height) star.y = 0;
+      });
+      requestAnimationFrame(animateStars);
+    }
+    animateStars();
+
     // Khởi tạo Recorder.js
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       let source = audioContext.createMediaStreamSource(stream);
@@ -100,38 +149,41 @@
 
     function adjustSpeechForOnyx(speech, text) {
       speech.lang = "vi-VN";
-      speech.volume = 1;
+      speech.volume = 0.9; // Giảm nhẹ để tránh rè
 
-      // Chia văn bản thành các câu để điều chỉnh pitch và rate
+      // Tạo bộ lọc âm thanh để giọng mượt hơn
+      let gainNode = audioContext.createGain();
+      let biquadFilter = audioContext.createBiquadFilter();
+      biquadFilter.type = "lowpass"; // Lọc tần số cao để giảm rè
+      biquadFilter.frequency.value = 2000; // Giảm các tần số cao gây rè
+      gainNode.gain.value = 0.9;
+
+      // Chia văn bản thành câu để điều chỉnh
       let sentences = text.split(/[.!?]+/).filter(s => s.trim());
       let currentTime = 0;
 
       sentences.forEach((sentence, index) => {
         let utterance = new SpeechSynthesisUtterance(sentence.trim());
         utterance.lang = "vi-VN";
-        utterance.volume = 1;
+        utterance.volume = 0.9;
 
-        // Chọn giọng nam nếu có
         let voices = window.speechSynthesis.getVoices();
         let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
-        if (maleVoice) {
-          utterance.voice = maleVoice;
-        }
+        if (maleVoice) utterance.voice = maleVoice;
 
-        // Điều chỉnh pitch và rate để mô phỏng ngữ điệu
+        // Điều chỉnh pitch và rate
         if (index % 2 === 0) {
-          utterance.pitch = 0.3; // Giọng trầm cho câu chẵn
-          utterance.rate = 0.7;  // Chậm hơn, tạo cảm giác điềm tĩnh
+          utterance.pitch = 0.3; // Trầm
+          utterance.rate = 0.7;  // Chậm
         } else {
-          utterance.pitch = 0.5; // Cao hơn một chút cho câu lẻ
-          utterance.rate = 0.85; // Nhanh hơn một chút
+          utterance.pitch = 0.5; // Cao hơn chút
+          utterance.rate = 0.85; // Nhanh hơn chút
         }
 
-        // Thêm khoảng dừng tự nhiên giữa các câu
         utterance.onstart = () => {
           setTimeout(() => window.speechSynthesis.speak(utterance), currentTime);
         };
-        currentTime += (sentence.length * 50) + 200; // Thời gian dựa trên độ dài câu + nghỉ
+        currentTime += (sentence.length * 50) + 200;
       });
     }
 
@@ -159,7 +211,7 @@
         recorder.stop();
         recorder.exportWAV(blob => {
           let url = URL.createObjectURL(blob);
-          let downloadLink = document.createObjectURL("a");
+          let downloadLink = document.createElement("a");
           downloadLink.href = url;
           downloadLink.download = "speech.wav";
           downloadLink.click();
