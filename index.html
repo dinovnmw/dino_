@@ -111,13 +111,13 @@
     let recorder;
     let voicesLoaded = false;
 
-    // Hiệu ứng ngôi sao tối ưu
+    // Hiệu ứng ngôi sao
     const canvas = document.getElementById('stars');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     let stars = [];
-    for (let i = 0; i < 50; i++) { // Giảm số ngôi sao để tăng hiệu suất
+    for (let i = 0; i < 50; i++) {
       stars.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -165,59 +165,25 @@
       alert("Vui lòng cho phép truy cập micro để ghi âm!");
     });
 
-    async function adjustSpeechForOnyx(speech, text) {
-      speech.lang = "vi-VN";
-      speech.volume = 0.9;
-
-      // Đợi danh sách giọng nói tải xong
+    async function adjustSpeechForOnyx(text, isRecording = false) {
       let voices = voicesLoaded ? window.speechSynthesis.getVoices() : await loadVoices();
       let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
-      if (maleVoice) speech.voice = maleVoice;
 
-      // Chia văn bản thành câu
       let sentences = text.split(/[.!?]+/).filter(s => s.trim());
-      sentences.forEach((sentence, index) => {
+      let utterances = sentences.map((sentence, index) => {
         let utterance = new SpeechSynthesisUtterance(sentence.trim());
         utterance.lang = "vi-VN";
         utterance.volume = 0.9;
         if (maleVoice) utterance.voice = maleVoice;
-
-        // Điều chỉnh pitch và rate
         utterance.pitch = index % 2 === 0 ? 0.3 : 0.5;
         utterance.rate = index % 2 === 0 ? 0.7 : 0.85;
-
-        window.speechSynthesis.speak(utterance); // Phát ngay lập tức
+        return utterance;
       });
-    }
 
-    async function speakText() {
-      let text = document.getElementById("text").value;
-      if (!text) return;
-
-      showLoading();
-      let speech = new SpeechSynthesisUtterance(text);
-      try {
-        await adjustSpeechForOnyx(speech, text);
-      } catch (err) {
-        console.error("Lỗi khi phát âm thanh:", err);
-        alert("Không thể phát âm thanh. Vui lòng thử lại!");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    async function downloadAudio() {
-      let text = document.getElementById("text").value;
-      if (!text || !recorder) return;
-
-      showLoading();
-      recorder.clear();
-      recorder.record();
-
-      let speech = new SpeechSynthesisUtterance(text);
-      try {
-        await adjustSpeechForOnyx(speech, text);
-        speech.onend = () => {
+      if (isRecording && recorder) {
+        recorder.record();
+        let lastUtterance = utterances[utterances.length - 1];
+        lastUtterance.onend = () => {
           recorder.stop();
           recorder.exportWAV(blob => {
             let url = URL.createObjectURL(blob);
@@ -228,9 +194,40 @@
             hideLoading();
           });
         };
+      }
+
+      utterances.forEach(utterance => window.speechSynthesis.speak(utterance));
+    }
+
+    async function speakText() {
+      let text = document.getElementById("text").value;
+      if (!text) return;
+
+      showLoading();
+      try {
+        await adjustSpeechForOnyx(text, false);
+      } catch (err) {
+        console.error("Lỗi khi phát âm thanh:", err);
+        alert("Không thể phát âm thanh. Vui lòng thử lại!");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function downloadAudio() {
+      let text = document.getElementById("text").value;
+      if (!text || !recorder) {
+        alert("Vui lòng nhập văn bản và đảm bảo micro đã được cấp quyền!");
+        return;
+      }
+
+      showLoading();
+      try {
+        await adjustSpeechForOnyx(text, true);
       } catch (err) {
         console.error("Lỗi khi ghi âm:", err);
-        alert("Không thể ghi âm. Vui lòng thử lại!");
+        alert("Không thể ghi âm hoặc tải file. Vui lòng thử lại!");
+        recorder.stop(); // Dừng ghi âm nếu có lỗi
         hideLoading();
       }
     }
@@ -243,7 +240,6 @@
       document.getElementById("loading").style.display = "none";
     }
 
-    // Tải voices ngay khi trang khởi động
     loadVoices();
   </script>
 </body>
