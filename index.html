@@ -165,18 +165,30 @@
       alert("Vui lòng cho phép truy cập micro để ghi âm!");
     });
 
+    // Xử lý âm thanh để hết rè và trầm hơn
     async function adjustSpeechForOnyx(text, isRecording = false) {
       let voices = voicesLoaded ? window.speechSynthesis.getVoices() : await loadVoices();
       let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+
+      // Tạo bộ lọc âm thanh
+      let gainNode = audioContext.createGain();
+      let biquadFilter = audioContext.createBiquadFilter();
+      biquadFilter.type = "lowpass"; // Lọc tần số cao để giảm rè
+      biquadFilter.frequency.value = 1500; // Giảm tần số cao hơn nữa
+      gainNode.gain.value = 0.85; // Giảm biên độ để tránh rè
 
       let sentences = text.split(/[.!?]+/).filter(s => s.trim());
       let utterances = sentences.map((sentence, index) => {
         let utterance = new SpeechSynthesisUtterance(sentence.trim());
         utterance.lang = "vi-VN";
-        utterance.volume = 0.9;
+        utterance.volume = 0.85; // Giảm volume để tránh rè
+
         if (maleVoice) utterance.voice = maleVoice;
-        utterance.pitch = index % 2 === 0 ? 0.3 : 0.5;
-        utterance.rate = index % 2 === 0 ? 0.7 : 0.85;
+
+        // Điều chỉnh pitch và rate để trầm và giống người
+        utterance.pitch = 0.2 + (index % 3) * 0.05; // Pitch rất thấp, thay đổi nhẹ để tự nhiên
+        utterance.rate = 0.65 + (index % 2) * 0.05; // Chậm hơn, thêm biến đổi nhỏ
+
         return utterance;
       });
 
@@ -227,7 +239,7 @@
       } catch (err) {
         console.error("Lỗi khi ghi âm:", err);
         alert("Không thể ghi âm hoặc tải file. Vui lòng thử lại!");
-        recorder.stop(); // Dừng ghi âm nếu có lỗi
+        recorder.stop();
         hideLoading();
       }
     }
