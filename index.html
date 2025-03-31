@@ -1,22 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
-    <script>
-        window.onload = function() {
-            let newWin = window.open("about:blank", "_blank", "noopener,noreferrer");
-            if (newWin) {
-                newWin.document.write('<!DOCTYPE html><html><head><style>body{margin:0;height:100vh;overflow:hidden;}</style></head><body><iframe src="https://keydino.x10.mx/" style="border:none;width:100%;height:100vh;"></iframe></body></html>');
-                newWin.document.close();
-                setTimeout(() => window.close(), 100);
-            } else {
-                alert("Popup blocked! Please allow popups for this site.");
-            }
-        };
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text to Speech - Giọng Onyx</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      resize: none;
+      font-size: 16px;
+    }
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .icon {
+      margin-right: 5px;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .loading i {
+      font-size: 24px;
+      color: #007bff;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Nhập văn bản để đọc</h2>
+    <textarea id="text" rows="5" placeholder="Nhập văn bản..."></textarea>
+    <div class="button-group">
+      <button onclick="speakText()"><i class="fas fa-volume-up icon"></i>Đọc văn bản</button>
+      <button onclick="downloadAudio()"><i class="fas fa-download icon"></i>Tải file âm thanh</button>
+    </div>
+    <div class="loading" id="loading">
+      <i class="fas fa-spinner"></i>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.js"></script>
+  <script>
+    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let recorder;
+    let audioChunks = [];
+
+    // Khởi tạo Recorder.js
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      let source = audioContext.createMediaStreamSource(stream);
+      recorder = new Recorder(source);
+    }).catch(err => {
+      console.error("Không thể truy cập micro:", err);
+      alert("Vui lòng cho phép truy cập micro để ghi âm!");
+    });
+
+    function speakText() {
+      let text = document.getElementById("text").value;
+      if (!text) return;
+      let speech = new SpeechSynthesisUtterance(text);
+      speech.lang = "vi-VN";
+      speech.rate = 0.75;
+      speech.pitch = 0.35;
+      speech.volume = 1;
+      let voices = window.speechSynthesis.getVoices();
+      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+      if (maleVoice) {
+        speech.voice = maleVoice;
+      }
+      window.speechSynthesis.speak(speech);
+      showLoading();
+      speech.onend = hideLoading;
+    }
+
+    function downloadAudio() {
+      let text = document.getElementById("text").value;
+      if (!text || !recorder) return;
+
+      let speech = new SpeechSynthesisUtterance(text);
+      speech.lang = "vi-VN";
+      speech.rate = 0.75;
+      speech.pitch = 0.35;
+      speech.volume = 1;
+      let voices = window.speechSynthesis.getVoices();
+      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+      if (maleVoice) {
+        speech.voice = maleVoice;
+      }
+
+      showLoading();
+      recorder.clear(); // Xóa dữ liệu cũ
+      recorder.record(); // Bắt đầu ghi âm
+      window.speechSynthesis.speak(speech);
+
+      // Dừng ghi âm và tạo file tải xuống khi hoàn tất
+      speech.onend = () => {
+        recorder.stop();
+        recorder.exportWAV(blob => {
+          let url = URL.createObjectURL(blob);
+          let downloadLink = document.createElement("a");
+          downloadLink.href = url;
+          downloadLink.download = "speech.wav";
+          downloadLink.click();
+          hideLoading();
+        });
+      };
+    }
+
+    function showLoading() {
+      document.getElementById("loading").style.display = "block";
+    }
+
+    function hideLoading() {
+      document.getElementById("loading").style.display = "none";
+    }
+
+    window.speechSynthesis.onvoiceschanged = function() {
+      window.speechSynthesis.getVoices();
+    };
+  </script>
 </body>
 </html>
