@@ -165,10 +165,10 @@
       alert("Vui lòng cho phép truy cập micro để ghi âm!");
     });
 
-    // Xử lý âm thanh để hết rè và trầm hơn
+    // Xử lý âm thanh để hết rè và trầm hơn và thêm giọng nữ
     async function adjustSpeechForOnyx(text, isRecording = false) {
       let voices = voicesLoaded ? window.speechSynthesis.getVoices() : await loadVoices();
-      let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
+      let femaleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("female"));
 
       // Tạo bộ lọc âm thanh
       let gainNode = audioContext.createGain();
@@ -183,11 +183,11 @@
         utterance.lang = "vi-VN";
         utterance.volume = 0.85; // Giảm volume để tránh rè
 
-        if (maleVoice) utterance.voice = maleVoice;
+        if (femaleVoice) utterance.voice = femaleVoice;
 
         // Điều chỉnh pitch và rate để trầm và giống người
-        utterance.pitch = 0.2 + (index % 3) * 0.05; // Pitch rất thấp, thay đổi nhẹ để tự nhiên
-        utterance.rate = 0.65 + (index % 2) * 0.05; // Chậm hơn, thêm biến đổi nhỏ
+        utterance.pitch = 1.0 + (index % 3) * 0.05; // Pitch rất thấp, thay đổi nhẹ để tự nhiên, nữ giọng cao hơn 1.0
+        utterance.rate = 0.9 + (index % 2) * 0.05; // Chậm hơn, thêm biến đổi nhỏ
 
         return utterance;
       });
