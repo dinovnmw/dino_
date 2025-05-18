@@ -3,258 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text to Speech-Dino</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Xuất văn bản ra file</title>
     <style>
         body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(180deg, #0a0a23 0%, #1a1a3d 100%);
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
-        }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            zIndex: -1;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            borderRadius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-            width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        h2 {
-            text-align: center;
-            color: #00ffff;
-            text-shadow: 0 0 5px #00ffff;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
         }
         textarea {
             width: 100%;
-            padding: 15px;
-            border: 1px solid #00ffff;
-            borderRadius: 10px;
-            resize: none;
-            fontSize: 16px;
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            outline: none;
+            height: 150px;
+            margin-bottom: 10px;
         }
-        textarea::placeholder {
-            color: #aaa;
-        }
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            marginTop: 15px;
+        input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
         }
         button {
-            padding: 12px 25px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
             border: none;
-            borderRadius: 10px;
-            background: linear-gradient(45deg, #00ffff, #00b7ff);
-            color: #fff;
-            fontSize: 16px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
         button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            background-color: #45a049;
         }
-        .icon {
-            margin-right: 8px;
-        }
-        .loading {
-            display: none;
-            textAlign: center;
-            marginTop: 15px;
-        }
-        .loading i {
-            fontSize: 28px;
-            color: #00ffff;
-            animation: spin 1s linear infinite;
-            text-shadow: 0 0 5px #00ffff;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
     </style>
 </head>
 <body>
-    <canvas id="stars"></canvas>
-    <div class="container">
-        <h2>Nhập văn bản để đọc</h2>
-        <textarea id="text" rows="5" placeholder="Nhập văn bản..."></textarea>
-        <div class="button-group">
-            <button onclick="speakText()"><i class="fas fa-volume-up icon"></i>Đọc văn bản</button>
-            <button onclick="downloadAudio()"><i class="fas fa-download icon"></i>Tải file âm thanh</button>
-        </div>
-        <div class="loading" id="loading">
-            <i class="fas fa-spinner"></i>
-        </div>
-    </div>
+    <h2>Nhập và xuất văn bản ra file</h2>
+    <textarea id="textInput" placeholder="Nhập văn bản của bạn tại đây..."></textarea>
+    <br>
+    <input type="text" id="fileName" placeholder="Nhập tên file (không cần đuôi)">
+    <br>
+    <input type="text" id="fileExtension" placeholder="Nhập đuôi file (ví dụ: txt, json, csv, md, html)">
+    <br>
+    <button onclick="saveTextAsFile()">Tải xuống file</button>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.js"></script>
     <script>
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let recorder;
-        let voicesLoaded = false;
+        function saveTextAsFile() {
+            // Lấy nội dung từ textarea
+            let textToWrite = document.getElementById('textInput').value;
+            const fileName = document.getElementById('fileName').value.trim();
+            let fileExtension = document.getElementById('fileExtension').value.trim().toLowerCase();
 
-        // Hiệu ứng ngôi sao
-        const canvas = document.getElementById('stars');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let stars = [];
-        for (let i = 0; i < 50; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 2,
-                speed: Math.random() * 0.3
-            });
-        }
-        function animateStars() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            stars.forEach(star => {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#fff';
-                ctx.fill();
-                star.y += star.speed;
-                if (star.y > canvas.height) star.y = 0;
-            });
-            requestAnimationFrame(animateStars);
-        }
-        animateStars();
-
-        // Tải trước danh sách giọng nói
-        function loadVoices() {
-            return new Promise(resolve => {
-                let voices = window.speechSynthesis.getVoices();
-                if (voices.length > 0) {
-                    voicesLoaded = true;
-                    resolve(voices);
-                } else {
-                    window.speechSynthesis.onvoiceschanged = () => {
-                        voices = window.speechSynthesis.getVoices();
-                        voicesLoaded = true;
-                        resolve(voices);
-                    };
-                }
-            });
-        }
-
-        // Khởi tạo Recorder.js
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            let source = audioContext.createMediaStreamSource(stream);
-            recorder = new Recorder(source);
-        }).catch(err => {
-            console.error("Không thể truy cập micro:", err);
-            alert("Vui lòng cho phép truy cập micro để ghi âm!");
-        });
-
-        // Xử lý âm thanh để hết rè và trầm hơn
-        async function adjustSpeechForOnyx(text, isRecording = false) {
-            let voices = voicesLoaded ? window.speechSynthesis.getVoices() : await loadVoices();
-            let maleVoice = voices.find(voice => voice.lang === "vi-VN" && voice.name.toLowerCase().includes("male"));
-
-            // Tạo bộ lọc âm thanh
-            let gainNode = audioContext.createGain();
-            let biquadFilter = audioContext.createBiquadFilter();
-            biquadFilter.type = "lowpass"; // Lọc tần số cao để giảm rè
-            biquadFilter.frequency.value = 1500; // Giảm tần số cao hơn nữa
-            gainNode.gain.value = 0.85; // Giảm biên độ để tránh rè
-
-            let sentences = text.split(/[.!?]+/).filter(s => s.trim());
-            let utterances = sentences.map(sentence => {
-                let utterance = new SpeechSynthesisUtterance(sentence.trim());
-                utterance.lang = "vi-VN";
-                utterance.volume = 0.85; // Giảm volume để tránh rè
-
-                if (maleVoice) utterance.voice = maleVoice;
-
-                // Điều chỉnh pitch và rate dựa trên độ dài câu
-                utterance.pitch = 0.2; // Giữ pitch ổn định
-                let baseRate = 0.65;
-                let lengthAdjustment = Math.min(0.2, sentence.trim().length / 100); // Điều chỉnh tối đa 0.2
-                utterance.rate = baseRate + (sentence.trim().length > 10 ? -lengthAdjustment : lengthAdjustment);
-
-                return utterance;
-            });
-
-            if (isRecording && recorder) {
-                recorder.record();
-                let lastUtterance = utterances[utterances.length - 1];
-                lastUtterance.onend = () => {
-                    recorder.stop();
-                    recorder.exportWAV(blob => {
-                        let url = URL.createObjectURL(blob);
-                        let downloadLink = document.createElement("a");
-                        downloadLink.href = url;
-                        downloadLink.download = "speech.wav";
-                        downloadLink.click();
-                        hideLoading();
-                    });
-                };
+            // Kiểm tra nếu tên file hoặc đuôi file rỗng
+            if (!fileName) {
+                alert('Vui lòng nhập tên file!');
+                return;
             }
-
-            utterances.forEach(utterance => window.speechSynthesis.speak(utterance));
-        }
-
-        async function speakText() {
-            let text = document.getElementById("text").value;
-            if (!text) return;
-
-            showLoading();
-            try {
-                await adjustSpeechForOnyx(text, false);
-            } catch (err) {
-                console.error("Lỗi khi phát âm thanh:", err);
-                alert("Không thể phát âm thanh. Vui lòng thử lại!");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function downloadAudio() {
-            let text = document.getElementById("text").value;
-            if (!text || !recorder) {
-                alert("Vui lòng nhập văn bản và đảm bảo micro đã được cấp quyền!");
+            if (!fileExtension) {
+                alert('Vui lòng nhập đuôi file!');
                 return;
             }
 
-            showLoading();
-            try {
-                await adjustSpeechForOnyx(text, true);
-            } catch (err) {
-                console.error("Lỗi khi ghi âm:", err);
-                alert("Không thể ghi âm hoặc tải file. Vui lòng thử lại!");
-                recorder.stop();
-                hideLoading();
+            // Loại bỏ dấu chấm nếu người dùng nhập vào (ví dụ: .txt -> txt)
+            if (fileExtension.startsWith('.')) {
+                fileExtension = fileExtension.slice(1);
             }
-        }
 
-        function showLoading() {
-            document.getElementById("loading").style.display = "block";
-        }
+            // Xác định MIME type dựa trên đuôi file
+            let mimeType;
+            switch (fileExtension) {
+                case 'txt':
+                    mimeType = 'text/plain';
+                    break;
+                case 'json':
+                    mimeType = 'application/json';
+                    try {
+                        // Đảm bảo nội dung là JSON hợp lệ
+                        textToWrite = JSON.stringify(JSON.parse(textToWrite), null, 2);
+                    } catch (e) {
+                        alert('Nội dung JSON không hợp lệ!');
+                        return;
+                    }
+                    break;
+                case 'csv':
+                    mimeType = 'text/csv';
+                    break;
+                case 'md':
+                    mimeType = 'text/markdown';
+                    break;
+                case 'html':
+                    mimeType = 'text/html';
+                    break;
+                default:
+                    mimeType = 'application/octet-stream'; // Mặc định cho các đuôi không xác định
+            }
 
-        function hideLoading() {
-            document.getElementById("loading").style.display = "none";
-        }
+            // Tạo một đối tượng Blob chứa văn bản
+            const textFileAsBlob = new Blob([textToWrite], { type: mimeType });
 
-        loadVoices();
+            // Tạo tên file đầy đủ
+            const fileNameToSaveAs = `${fileName}.${fileExtension}`;
+
+            // Tạo link tải xuống
+            const downloadLink = document.createElement('a');
+            downloadLink.download = fileNameToSaveAs;
+            downloadLink.innerHTML = 'Download File';
+
+            // Tạo URL cho Blob và gán vào link
+            downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+
+            // Kích hoạt click để tải xuống
+            downloadLink.click();
+
+            // Giải phóng URL
+            window.URL.revokeObjectURL(downloadLink.href);
+        }
     </script>
 </body>
 </html>
