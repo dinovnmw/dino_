@@ -1,119 +1,205 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xuất văn bản ra file</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        textarea {
-            width: 100%;
-            height: 150px;
-            margin-bottom: 10px;
-        }
-        input {
-            margin-bottom: 10px;
-            padding: 5px;
-            width: 100%;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chỉnh sửa & đổi tên file</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 30px 20px;
+      background: #f0f4ff;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,50,0.1);
+      color: #222;
+    }
+    h2 {
+      color: #2a52d8;
+      margin-bottom: 28px;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(42,82,216,0.4);
+    }
+    input[type="file"] {
+      margin-bottom: 20px;
+      cursor: pointer;
+      width: 100%;
+      border: 2px dashed #7b94e8;
+      padding: 15px;
+      border-radius: 12px;
+      transition: background-color 0.3s ease;
+    }
+    input[type="file"]:hover {
+      background-color: #dbe4ff;
+    }
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      resize: vertical;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      outline: none;
+      background: white;
+    }
+    textarea:focus,
+    input[type="text"]:focus {
+      border-color: #2a52d8;
+      box-shadow: 0 0 12px rgba(42,82,216,0.5);
+      animation: pulse 1.2s ease-in-out infinite alternate;
+    }
+    button {
+      background: linear-gradient(45deg, #2a52d8, #3f69ff);
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 14px 0;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 5px 15px rgba(63,105,255,0.6);
+      transition: background 0.35s ease, transform 0.2s ease;
+      user-select: none;
+    }
+    button:hover {
+      background: linear-gradient(45deg, #3f69ff, #2a52d8);
+      transform: scale(1.05);
+      box-shadow: 0 7px 25px rgba(63,105,255,0.9);
+    }
+    button:active {
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(63,105,255,0.6);
+    }
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 12px rgba(42,82,216,0.5);
+      }
+      100% {
+        box-shadow: 0 0 22px rgba(42,82,216,0.9);
+      }
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 12px;
+      font-style: italic;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-    <h2>Nhập và xuất văn bản ra file</h2>
-    <textarea id="textInput" placeholder="Nhập văn bản của bạn tại đây..."></textarea>
-    <br>
-    <input type="text" id="fileName" placeholder="Nhập tên file (không cần đuôi)">
-    <br>
-    <input type="text" id="fileExtension" placeholder="Nhập đuôi file (ví dụ: txt, json, csv, md, html)">
-    <br>
-    <button onclick="saveTextAsFile()">Tải xuống file</button>
+  <h2>Chỉnh sửa & đổi tên file bất kỳ (file text)</h2>
 
-    <script>
-        function saveTextAsFile() {
-            // Lấy nội dung từ textarea
-            let textToWrite = document.getElementById('textInput').value;
-            const fileName = document.getElementById('fileName').value.trim();
-            let fileExtension = document.getElementById('fileExtension').value.trim().toLowerCase();
+  <input type="file" id="fileInput" accept="*/*" />
 
-            // Kiểm tra nếu tên file hoặc đuôi file rỗng
-            if (!fileName) {
-                alert('Vui lòng nhập tên file!');
-                return;
-            }
-            if (!fileExtension) {
-                alert('Vui lòng nhập đuôi file!');
-                return;
-            }
+  <div class="note">Hỗ trợ chỉnh sửa file dạng text (txt, md, json, csv, html,...). Với file Word hoặc nhị phân, chỉ đổi tên/đuôi được.</div>
 
-            // Loại bỏ dấu chấm nếu người dùng nhập vào (ví dụ: .txt -> txt)
-            if (fileExtension.startsWith('.')) {
-                fileExtension = fileExtension.slice(1);
-            }
+  <textarea id="fileContent" placeholder="Nội dung file sẽ hiển thị tại đây..." rows="12" disabled></textarea>
 
-            // Xác định MIME type dựa trên đuôi file
-            let mimeType;
-            switch (fileExtension) {
-                case 'txt':
-                    mimeType = 'text/plain';
-                    break;
-                case 'json':
-                    mimeType = 'application/json';
-                    try {
-                        // Đảm bảo nội dung là JSON hợp lệ
-                        textToWrite = JSON.stringify(JSON.parse(textToWrite), null, 2);
-                    } catch (e) {
-                        alert('Nội dung JSON không hợp lệ!');
-                        return;
-                    }
-                    break;
-                case 'csv':
-                    mimeType = 'text/csv';
-                    break;
-                case 'md':
-                    mimeType = 'text/markdown';
-                    break;
-                case 'html':
-                    mimeType = 'text/html';
-                    break;
-                default:
-                    mimeType = 'application/octet-stream'; // Mặc định cho các đuôi không xác định
-            }
+  <input type="text" id="fileName" placeholder="Nhập tên file mới (không cần đuôi)" disabled />
+  <input type="text" id="fileExtension" placeholder="Nhập đuôi file mới (ví dụ: txt, json, md, html)" disabled />
 
-            // Tạo một đối tượng Blob chứa văn bản
-            const textFileAsBlob = new Blob([textToWrite], { type: mimeType });
+  <button id="saveBtn" disabled>Tải xuống file đã chỉnh sửa</button>
 
-            // Tạo tên file đầy đủ
-            const fileNameToSaveAs = `${fileName}.${fileExtension}`;
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const fileContent = document.getElementById('fileContent');
+    const fileName = document.getElementById('fileName');
+    const fileExtension = document.getElementById('fileExtension');
+    const saveBtn = document.getElementById('saveBtn');
 
-            // Tạo link tải xuống
-            const downloadLink = document.createElement('a');
-            downloadLink.download = fileNameToSaveAs;
-            downloadLink.innerHTML = 'Download File';
+    let originalFileName = '';
+    let originalExtension = '';
+    let originalContent = null;
+    let isTextFile = false;
 
-            // Tạo URL cho Blob và gán vào link
-            downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-            // Kích hoạt click để tải xuống
-            downloadLink.click();
+      originalFileName = file.name.replace(/\.[^/.]+$/, '');
+      originalExtension = (file.name.match(/\.[^/.]+$/) || [''])[0].slice(1);
 
-            // Giải phóng URL
-            window.URL.revokeObjectURL(downloadLink.href);
+      fileName.value = originalFileName;
+      fileExtension.value = originalExtension;
+
+      // Reset state
+      fileContent.value = '';
+      fileContent.disabled = true;
+      fileName.disabled = true;
+      fileExtension.disabled = true;
+      saveBtn.disabled = true;
+
+      // Kiểm tra loại mime xem có phải file text không
+      if (file.type.startsWith('text/') || [
+        'application/json',
+        'application/javascript',
+        'application/xml',
+        'text/markdown',
+        'text/csv',
+        'text/html'
+      ].includes(file.type) || ['txt', 'json', 'md', 'csv', 'html', 'js', 'xml'].includes(originalExtension.toLowerCase())) {
+        isTextFile = true;
+        try {
+          const text = await file.text();
+          fileContent.value = text;
+          fileContent.disabled = false;
+          fileName.disabled = false;
+          fileExtension.disabled = false;
+          saveBtn.disabled = false;
+        } catch {
+          alert('Không thể đọc nội dung file!');
         }
-    </script>
+      } else {
+        // Không phải file text, không cho sửa nội dung
+        isTextFile = false;
+        fileContent.value = '[Không hỗ trợ chỉnh sửa nội dung file này]';
+        fileContent.disabled = true;
+        fileName.disabled = false;
+        fileExtension.disabled = false;
+        saveBtn.disabled = false;
+      }
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const name = fileName.value.trim();
+      let ext = fileExtension.value.trim();
+
+      if (!name) {
+        alert('Vui lòng nhập tên file!');
+        return;
+      }
+      if (!ext) {
+        alert('Vui lòng nhập đuôi file!');
+        return;
+      }
+      if (ext.startsWith('.')) ext = ext.slice(1);
+
+      let contentToSave;
+
+      if (isTextFile) {
+        contentToSave = fileContent.value;
+      } else {
+        alert('Chỉ hỗ trợ tải lại file đã upload với tên và đuôi mới. Nội dung không thể chỉnh sửa.');
+        return;
+      }
+
+      const blob = new Blob([contentToSave], { type: 'application/octet-stream' });
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(blob);
+      downloadLink.download = `${name}.${ext}`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(downloadLink.href);
+    });
+  </script>
 </body>
 </html>
