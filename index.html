@@ -1,450 +1,193 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ứng dụng AES File Utility - Phiên bản nâng cấp</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-<style>
-  /* Nền gradient động */
-  @keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  /* Reset và cấu hình chung */
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0; padding: 40px 20px 60px;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(270deg, #1e3c72, #2a5298, #1e3c72, #2a5298);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-    color: #f0f0f0;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  /* Hộp chứa chính */
-  .container {
-    background: rgba(30, 30, 30, 0.9);
-    max-width: 600px;
-    width: 100%;
-    border-radius: 16px;
-    box-shadow:
-      0 8px 16px rgba(0, 0, 0, 0.6),
-      0 0 12px rgba(52, 152, 219, 0.7);
-    padding: 30px 40px;
-    backdrop-filter: blur(10px);
-    transition: box-shadow 0.3s ease;
-  }
-  .container:hover {
-    box-shadow:
-      0 12px 30px rgba(0, 0, 0, 0.8),
-      0 0 18px rgba(52, 152, 219, 1);
-  }
-
-  /* Thanh tabs */
-  ul.tabs {
-    list-style: none;
-    margin: 0 0 30px 0;
-    padding: 0;
-    display: flex;
-    background: rgba(255 255 255 / 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    user-select: none;
-    box-shadow: inset 0 0 8px rgba(255 255 255 / 0.15);
-  }
-
-  ul.tabs li {
-    flex: 1;
-    text-align: center;
-    padding: 14px 0;
-    cursor: pointer;
-    font-weight: 600;
-    color: #a0c4ff;
-    transition: background 0.4s, color 0.4s, transform 0.2s;
-    position: relative;
-    letter-spacing: 0.04em;
-    user-select: none;
-  }
-  ul.tabs li:hover:not(.active) {
-    background: rgba(255 255 255 / 0.15);
-    color: #d0e7ff;
-    transform: scale(1.05);
-  }
-  ul.tabs li.active {
-    background: #3498db;
-    color: #fff;
-    box-shadow:
-      0 0 10px #2980b9,
-      inset 0 0 10px #2980b9;
-    transform: scale(1.1);
-  }
-
-  /* Nội dung tab */
-  .tab-content {
-    display: none;
-    opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .tab-content.active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Nhãn và input */
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #a8d0ff;
-    letter-spacing: 0.03em;
-  }
-  input[type="text"],
-  input[type="password"],
-  input[type="file"],
-  textarea {
-    width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 18px;
-    border-radius: 10px;
-    border: 2px solid #4069a5;
-    background: rgba(255 255 255 / 0.05);
-    color: #e0eaff;
-    font-size: 15px;
-    font-weight: 400;
-    outline: none;
-    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-    resize: vertical;
-  }
-  input[type="text"]:focus,
-  input[type="password"]:focus,
-  input[type="file"]:focus,
-  textarea:focus {
-    border-color: #5dade2;
-    background: rgba(255 255 255 / 0.15);
-    box-shadow: 0 0 8px #5dade2;
-  }
-  textarea {
-    min-height: 130px;
-  }
-
-  /* Button */
-  button {
-    background: #2980b9;
-    border: none;
-    color: #e8f0ff;
-    font-weight: 700;
-    padding: 14px 28px;
-    font-size: 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 6px 10px rgba(41, 128, 185, 0.6);
-    transition:
-      background-color 0.3s ease,
-      box-shadow 0.3s ease,
-      transform 0.15s ease;
-    user-select: none;
-    display: inline-block;
-  }
-  button:hover:not(:disabled) {
-    background: #1f618d;
-    box-shadow: 0 8px 16px rgba(31, 97, 141, 0.9);
-    transform: scale(1.05);
-  }
-  button:active:not(:disabled) {
-    transform: scale(0.95);
-    box-shadow: 0 4px 8px rgba(31, 97, 141, 0.7);
-  }
-  button:disabled {
-    background: #555;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-  }
-
-  /* Chú thích nhỏ */
-  small {
-    font-size: 13px;
-    color: #6fa8dc;
-  }
-
-  /* Responsive */
-  @media (max-width: 560px) {
-    .container {
-      padding: 25px 20px;
+  <meta charset="UTF-8" />
+  <title>Chill HTML Tabs Runner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
     }
-    ul.tabs {
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right top, #1a1a2e, #16213e, #0f3460);
+      color: #fff;
+      height: 100vh;
+      display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
-    ul.tabs li {
-      padding: 12px 0;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    #tabs {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 8px 16px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 15px;
     }
-    button {
-      width: 100%;
-      font-size: 16px;
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.15);
     }
-  }
-</style>
+    .tab.active {
+      background: #00adb5;
+      color: #fff;
+      font-weight: bold;
+    }
+    .controls button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      margin-left: 6px;
+      cursor: pointer;
+      background: #393e46;
+      color: white;
+      transition: 0.3s;
+    }
+    .controls button:hover {
+      background: #00adb5;
+    }
+    #editor {
+      width: 100%;
+      height: 140px;
+      padding: 12px;
+      background: #222831;
+      color: #00ffae;
+      font-family: monospace;
+      border: none;
+      outline: none;
+      resize: vertical;
+      transition: 0.3s ease;
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+      transition: 0.4s ease;
+    }
+    footer {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    footer button {
+      padding: 8px 14px;
+      background: #393e46;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    footer button:hover {
+      background: #00adb5;
+    }
+  </style>
 </head>
 <body>
-  <main class="container" role="main" aria-label="Ứng dụng AES File Utility">
-    <ul class="tabs" role="tablist" aria-label="Chọn chức năng">
-      <li class="tab active" data-tab="tab-create" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-create">Tạo file</li>
-      <li class="tab" data-tab="tab-edit" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-edit">Sửa file</li>
-      <li class="tab" data-tab="tab-encrypt" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-encrypt">Mã hóa file</li>
-      <li class="tab" data-tab="tab-decrypt" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-decrypt">Giải mã file</li>
-    </ul>
+  <header>
+    <div id="tabs"></div>
+    <div class="controls">
+      <button onclick="addTab()">➕ Thêm Tab</button>
+      <button onclick="goFullscreen()">⛶ Fullscreen</button>
+    </div>
+  </header>
 
-    <section id="tab-create" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="tab-create">
-      <label for="newFilename">Tên file (không bao gồm đuôi):</label>
-      <input type="text" id="newFilename" placeholder="ví dụ: myfile" autocomplete="off" />
-      <label for="newExtension">Đuôi file (ví dụ: txt, pdf):</label>
-      <input type="text" id="newExtension" placeholder="ví dụ: txt" autocomplete="off" />
-      <label for="newContent">Nội dung file:</label>
-      <textarea id="newContent" placeholder="Nhập nội dung..."></textarea>
-      <button id="createBtn" type="button" aria-label="Tạo và tải file">Tạo và Tải về</button>
-    </section>
+  <textarea id="editor" placeholder="Nhập mã HTML vào đây..." oninput="updateCode()"></textarea>
+  <iframe id="preview"></iframe>
 
-    <section id="tab-edit" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-edit">
-      <label for="editFileInput">Chọn file để sửa:</label>
-      <input type="file" id="editFileInput" aria-describedby="editFileDesc" />
-      <small id="editFileDesc">Chỉ hỗ trợ các file văn bản (.txt, .json, .csv,...)</small>
-      <label for="editContent">Nội dung file:</label>
-      <textarea id="editContent" placeholder="Nội dung file sẽ hiện ở đây..." disabled></textarea>
-      <button id="saveEditBtn" type="button" disabled aria-label="Lưu file đã sửa">Lưu file đã sửa</button>
-    </section>
+  <footer>
+    <button onclick="deleteTab()">🗑 Xoá Tab</button>
+    <button onclick="saveTabs()">💾 Lưu Tabs</button>
+  </footer>
 
-    <section id="tab-encrypt" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-encrypt">
-      <label for="encryptFileInput">Chọn file để mã hóa:</label>
-      <input type="file" id="encryptFileInput" aria-describedby="encryptFileDesc" />
-      <small id="encryptFileDesc">Chọn file văn bản để mã hóa AES-256</small>
-      <label for="encryptPassword">Mật khẩu mã hóa:</label>
-      <input type="password" id="encryptPassword" placeholder="Nhập mật khẩu..." autocomplete="new-password" />
-      <button id="encryptBtn" type="button" disabled aria-label="Mã hóa và tải file">Mã hóa và Tải về</button>
-    </section>
+  <script>
+    let tabs = JSON.parse(localStorage.getItem("tabs") || "[]");
+    let currentTab = 0;
 
-    <section id="tab-decrypt" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-decrypt">
-      <label for="decryptFileInput">Chọn file đã mã hóa:</label>
-      <input type="file" id="decryptFileInput" aria-describedby="decryptFileDesc" />
-      <small id="decryptFileDesc">Chọn file đã mã hóa để giải mã</small>
-      <label for="decryptPassword">Mật khẩu giải mã:</label>
-      <input type="password" id="decryptPassword" placeholder="Nhập mật khẩu..." autocomplete="current-password" />
-      <button id="decryptBtn" type="button" disabled aria-label="Giải mã và tải file">Giải mã và Tải về</button>
-    </section>
-  </main>
-
-<script>
-  // Quản lý chuyển tab
-  const tabs = document.querySelectorAll('ul.tabs li');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => activateTab(tab));
-    tab.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        activateTab(tab);
-      }
-    });
-  });
-
-  function activateTab(selectedTab) {
-    tabs.forEach(tab => {
-      tab.classList.remove('active');
-      tab.setAttribute('aria-selected', 'false');
-      tab.setAttribute('tabindex', '-1');
-    });
-    tabContents.forEach(content => content.classList.remove('active'));
-
-    selectedTab.classList.add('active');
-    selectedTab.setAttribute('aria-selected', 'true');
-    selectedTab.setAttribute('tabindex', '0');
-    const target = selectedTab.getAttribute('data-tab');
-    document.getElementById(target).classList.add('active');
-    document.getElementById(target).focus();
-  }
-
-  // Các nút chức năng
-  // 1. Tạo file mới
-  document.getElementById('createBtn').addEventListener('click', () => {
-    const name = document.getElementById('newFilename').value.trim();
-    const ext = document.getElementById('newExtension').value.trim();
-    const content = document.getElementById('newContent').value;
-    if (!name) {
-      alert('Vui lòng nhập tên file.');
-      return;
+    function renderTabs() {
+      const tabsDiv = document.getElementById("tabs");
+      tabsDiv.innerHTML = '';
+      tabs.forEach((tab, index) => {
+        const el = document.createElement("div");
+        el.className = "tab" + (index === currentTab ? " active" : "");
+        el.innerHTML = "📄 Tab " + (index + 1);
+        el.onclick = () => switchTab(index);
+        tabsDiv.appendChild(el);
+      });
     }
-    if (!ext) {
-      alert('Vui lòng nhập đuôi file.');
-      return;
+
+    function switchTab(index) {
+      currentTab = index;
+      renderTabs();
+      document.getElementById("editor").value = tabs[currentTab].code;
+      updatePreview();
     }
-    const filename = `${name}.${ext}`;
-    downloadFile(filename, content);
-  });
 
-  // 2. Sửa file
-  const editFileInput = document.getElementById('editFileInput');
-  const editContent = document.getElementById('editContent');
-  const saveEditBtn = document.getElementById('saveEditBtn');
-  let currentEditFileName = '';
-
-  editFileInput.addEventListener('change', () => {
-    const file = editFileInput.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('text/')) {
-      alert('Chỉ hỗ trợ file văn bản.');
-      editFileInput.value = '';
-      return;
+    function updateCode() {
+      tabs[currentTab].code = document.getElementById("editor").value;
+      updatePreview();
     }
-    currentEditFileName = file.name;
-    const reader = new FileReader();
-    reader.onload = e => {
-      editContent.value = e.target.result;
-      editContent.disabled = false;
-      saveEditBtn.disabled = false;
-    };
-    reader.readAsText(file);
-  });
 
-  saveEditBtn.addEventListener('click', () => {
-    if (!currentEditFileName) return;
-    const editedContent = editContent.value;
-    downloadFile(currentEditFileName, editedContent);
-  });
-
-  // 3. Mã hóa file (AES 256)
-  const encryptFileInput = document.getElementById('encryptFileInput');
-  const encryptPassword = document.getElementById('encryptPassword');
-  const encryptBtn = document.getElementById('encryptBtn');
-  let encryptFileData = null;
-
-  encryptFileInput.addEventListener('change', () => {
-    if (encryptFileInput.files.length > 0) {
-      encryptBtn.disabled = encryptPassword.value.trim() === '';
-      const file = encryptFileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = e => {
-        encryptFileData = e.target.result;
-      };
-      reader.readAsText(file);
-    } else {
-      encryptFileData = null;
-      encryptBtn.disabled = true;
+    function updatePreview() {
+      const iframe = document.getElementById("preview");
+      iframe.srcdoc = tabs[currentTab].code;
     }
-  });
-  encryptPassword.addEventListener('input', () => {
-    encryptBtn.disabled = !encryptFileData || encryptPassword.value.trim() === '';
-  });
 
-  encryptBtn.addEventListener('click', async () => {
-    if (!encryptFileData) {
-      alert('Vui lòng chọn file để mã hóa.');
-      return;
+    function addTab() {
+      tabs.push({ code: "<h2>Tab mới</h2><p>Viết HTML ở đây!</p>" });
+      currentTab = tabs.length - 1;
+      renderTabs();
+      switchTab(currentTab);
     }
-    if (!encryptPassword.value.trim()) {
-      alert('Vui lòng nhập mật khẩu mã hóa.');
-      return;
-    }
-    try {
-      const encrypted = await encryptAES(encryptFileData, encryptPassword.value.trim());
-      downloadFile('encrypted.aes', encrypted);
-    } catch (err) {
-      alert('Mã hóa thất bại: ' + err.message);
-    }
-  });
 
-  // 4. Giải mã file
-  const decryptFileInput = document.getElementById('decryptFileInput');
-  const decryptPassword = document.getElementById('decryptPassword');
-  const decryptBtn = document.getElementById('decryptBtn');
-  let decryptFileData = null;
-
-  decryptFileInput.addEventListener('change', () => {
-    if (decryptFileInput.files.length > 0) {
-      decryptBtn.disabled = decryptPassword.value.trim() === '';
-      const file = decryptFileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = e => {
-        decryptFileData = e.target.result;
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      decryptFileData = null;
-      decryptBtn.disabled = true;
+    function deleteTab() {
+      if (tabs.length <= 1) return alert("Cần ít nhất một tab!");
+      tabs.splice(currentTab, 1);
+      currentTab = Math.max(0, currentTab - 1);
+      renderTabs();
+      switchTab(currentTab);
     }
-  });
-  decryptPassword.addEventListener('input', () => {
-    decryptBtn.disabled = !decryptFileData || decryptPassword.value.trim() === '';
-  });
 
-  decryptBtn.addEventListener('click', async () => {
-    if (!decryptFileData) {
-      alert('Vui lòng chọn file để giải mã.');
-      return;
+    function saveTabs() {
+      localStorage.setItem("tabs", JSON.stringify(tabs));
+      alert("Đã lưu tất cả tab!");
     }
-    if (!decryptPassword.value.trim()) {
-      alert('Vui lòng nhập mật khẩu giải mã.');
-      return;
+
+    function goFullscreen() {
+      const iframe = document.getElementById("preview");
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+      else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
     }
-    try {
-      const decrypted = await decryptAES(decryptFileData, decryptPassword.value.trim());
-      downloadFile('decrypted.txt', decrypted);
-    } catch (err) {
-      alert('Giải mã thất bại hoặc mật khẩu không đúng.');
+
+    if (tabs.length === 0) {
+      tabs = [{ code: "<h1>Chào mừng!</h1><p>HTML Preview</p>" }];
     }
-  });
-
-  // Hàm tải file
-  function downloadFile(filename, content) {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }
-
-  // Hàm mã hóa AES-GCM 256-bit
-  async function encryptAES(text, password) {
-    const pwUtf8 = new TextEncoder().encode(password);
-    const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);
-    const iv = crypto.getRandomValues(new Uint8Array(12)); // 12 byte IV cho AES-GCM
-    const alg = { name: 'AES-GCM', iv: iv };
-    const key = await crypto.subtle.importKey('raw', pwHash, alg, false, ['encrypt']);
-    const encodedText = new TextEncoder().encode(text);
-    const encrypted = await crypto.subtle.encrypt(alg, key, encodedText);
-    // Kết hợp IV + encrypted data để gửi file
-    const combined = new Uint8Array(iv.byteLength + encrypted.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(encrypted), iv.byteLength);
-    return combined;
-  }
-
-  // Hàm giải mã AES-GCM 256-bit
-  async function decryptAES(data, password) {
-    const pwUtf8 = new TextEncoder().encode(password);
-    const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);
-    const iv = data.slice(0, 12);
-    const encrypted = data.slice(12);
-    const alg = { name: 'AES-GCM', iv: iv };
-    const key = await crypto.subtle.importKey('raw', pwHash, alg, false, ['decrypt']);
-    const decryptedBuffer = await crypto.subtle.decrypt(alg, key, encrypted);
-    return new TextDecoder().decode(decryptedBuffer);
-  }
-</script>
+    renderTabs();
+    switchTab(0);
+  </script>
 </body>
 </html>
