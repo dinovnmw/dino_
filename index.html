@@ -3,218 +3,401 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ứng dụng quản lý file & mã hóa AES</title>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Handsome&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
+<title>Ứng dụng AES File Utility - Phiên bản nâng cấp</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <style>
+  /* Nền gradient động */
+  @keyframes gradientBG {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
   body {
-    font-family: 'Handsome', 'Poppins', sans-serif;
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 20px;
-    background: #f9fbff;
-    border-radius: 12px;
-    box-shadow: 0 10px 35px rgba(0,0,80,0.12);
-    color: #222;
-    animation: fadeIn 1.2s ease-in;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 25px;
-    color: #2a52d8;
-    text-shadow: 0 1px 3px rgba(42,82,216,0.5);
-    animation: fadeIn 1.5s ease;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
-    justify-content: center;
-  }
-  .tabs button {
-    flex: 1;
-    background: #e2e8ff;
-    border: none;
-    padding: 12px 20px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2a52d8;
-    cursor: pointer;
-    border-radius: 8px 8px 0 0;
-    box-shadow: inset 0 3px 0 #6378ff;
-    transition: background 0.3s ease, transform 0.2s;
-  }
-  .tabs button:hover {
-    background: #ccd9ff;
-    transform: scale(1.03);
-  }
-  .tabs button.active {
-    background: #2a52d8;
-    color: white;
-    box-shadow: none;
-  }
-
-  .tab-content {
-    background: white;
-    border-radius: 0 12px 12px 12px;
-    padding: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,80,0.1);
-    min-height: 320px;
-    animation: fadeIn 0.8s ease-in-out;
-  }
-
-  textarea, input[type="text"], input[type="file"] {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #cbd6ff;
-    border-radius: 10px;
-    font-size: 1rem;
+    margin: 0; padding: 0;
     font-family: 'Poppins', sans-serif;
-    box-sizing: border-box;
-    margin-bottom: 18px;
-    transition: border-color 0.3s ease;
+    background: linear-gradient(270deg, #1e3c72, #2a5298, #1e3c72, #2a5298);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #f0f0f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
   }
-  textarea:focus, input:focus {
-    border-color: #2a52d8;
-    outline: none;
-    box-shadow: 0 0 12px rgba(42,82,216,0.6);
+
+  .container {
+    background: rgba(30, 30, 30, 0.9);
+    max-width: 600px;
+    width: 100%;
+    border-radius: 16px;
+    box-shadow:
+      0 8px 16px rgba(0, 0, 0, 0.6),
+      0 0 12px rgba(52, 152, 219, 0.7);
+    padding: 30px 40px;
+    backdrop-filter: blur(10px);
+    transition: box-shadow 0.3s ease;
   }
-  label {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 6px;
-    color: #2a52d8;
+  .container:hover {
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.8),
+      0 0 18px rgba(52, 152, 219, 1);
   }
-  button {
-    background: #2a52d8;
-    color: white;
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 14px 20px;
-    border: none;
+
+  /* Tabs navigation */
+  ul.tabs {
+    list-style: none;
+    margin: 0 0 30px 0;
+    padding: 0;
+    display: flex;
+    background: rgba(255 255 255 / 0.1);
     border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 7px 20px rgba(42,82,216,0.6);
-    transition: background 0.3s ease, transform 0.2s;
+    overflow: hidden;
+    user-select: none;
+    box-shadow: inset 0 0 8px rgba(255 255 255 / 0.15);
   }
-  button:hover {
-    background: #3f69ff;
+
+  ul.tabs li {
+    flex: 1;
+    text-align: center;
+    padding: 14px 0;
+    cursor: pointer;
+    font-weight: 600;
+    color: #a0c4ff;
+    transition: background 0.4s, color 0.4s, transform 0.2s;
+    position: relative;
+    letter-spacing: 0.04em;
+  }
+  ul.tabs li:hover:not(.active) {
+    background: rgba(255 255 255 / 0.15);
+    color: #d0e7ff;
     transform: scale(1.05);
   }
-  button:active {
-    animation: pulse 0.3s;
+  ul.tabs li.active {
+    background: #3498db;
+    color: #fff;
+    box-shadow:
+      0 0 10px #2980b9,
+      inset 0 0 10px #2980b9;
+    transform: scale(1.1);
+  }
+
+  /* Tab content */
+  .tab-content {
+    display: none;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .tab-content.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Form inputs */
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #a8d0ff;
+    letter-spacing: 0.03em;
+  }
+  input[type="text"],
+  input[type="password"],
+  input[type="file"],
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border: 2px solid #4069a5;
+    background: rgba(255 255 255 / 0.05);
+    color: #e0eaff;
+    font-size: 15px;
+    font-weight: 400;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s;
+    box-sizing: border-box;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  input[type="file"]:focus,
+  textarea:focus {
+    border-color: #5dade2;
+    background: rgba(255 255 255 / 0.15);
+    box-shadow: 0 0 8px #5dade2;
+  }
+  textarea {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  /* Buttons */
+  button {
+    background: #2980b9;
+    border: none;
+    color: #e8f0ff;
+    font-weight: 700;
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 6px 10px rgba(41, 128, 185, 0.6);
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.15s ease;
+    user-select: none;
+    display: inline-block;
+  }
+  button:hover:not(:disabled) {
+    background: #1f618d;
+    box-shadow: 0 8px 16px rgba(31, 97, 141, 0.9);
+    transform: scale(1.05);
+  }
+  button:active:not(:disabled) {
+    transform: scale(0.95);
+    box-shadow: 0 4px 8px rgba(31, 97, 141, 0.7);
+  }
+  button:disabled {
+    background: #555;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 560px) {
+    .container {
+      padding: 25px 20px;
+    }
+    ul.tabs {
+      flex-direction: column;
+    }
+    ul.tabs li {
+      padding: 12px 0;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      font-size: 16px;
+    }
   }
 </style>
 </head>
 <body>
-<h1>Quản lý File & Mã hóa AES</h1>
-<div class="tabs">
-  <button class="active" onclick="openTab(0)">Tạo File</button>
-  <button onclick="openTab(1)">Sửa File</button>
-  <button onclick="openTab(2)">Mã hóa File</button>
-</div>
+  <div class="container" role="main" aria-label="Ứng dụng AES File Utility">
+    <ul class="tabs" role="tablist" aria-label="Chọn chức năng">
+      <li class="tab active" data-tab="tab-create" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-create">Tạo file</li>
+      <li class="tab" data-tab="tab-edit" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-edit">Sửa file</li>
+      <li class="tab" data-tab="tab-encrypt" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-encrypt">Mã hóa file</li>
+      <li class="tab" data-tab="tab-decrypt" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-decrypt">Giải mã file</li>
+    </ul>
 
-<div id="tab0" class="tab-content">
-  <label for="newContent">Nội dung file:</label>
-  <textarea id="newContent"></textarea>
-  <label for="newName">Tên file:</label>
-  <input type="text" id="newName" placeholder="vd: script">
-  <label for="newExt">Đuôi file:</label>
-  <input type="text" id="newExt" placeholder="vd: vba, txt, html">
-  <button onclick="saveNewFile()">Tạo và tải file</button>
-</div>
+    <section id="tab-create" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="tab-create">
+      <label for="newFilename">Tên file (không bao gồm đuôi):</label>
+      <input type="text" id="newFilename" placeholder="ví dụ: myfile" autocomplete="off" />
+      <label for="newExtension">Đuôi file (ví dụ: txt, pdf):</label>
+      <input type="text" id="newExtension" placeholder="ví dụ: txt" autocomplete="off" />
+      <label for="newContent">Nội dung file:</label>
+      <textarea id="newContent" placeholder="Nhập nội dung..."></textarea>
+      <button id="createBtn" type="button" aria-label="Tạo và tải file">Tạo và Tải về</button>
+    </section>
 
-<div id="tab1" class="tab-content" style="display:none">
-  <label for="editFile">Chọn file để sửa:</label>
-  <input type="file" id="editFile" accept="*/*">
-  <textarea id="editContent" placeholder="Nội dung hiện tại..."></textarea>
-  <label for="editName">Tên mới:</label>
-  <input type="text" id="editName" placeholder="Tên mới">
-  <label for="editExt">Đuôi mới:</label>
-  <input type="text" id="editExt" placeholder="vd: txt">
-  <button onclick="saveEditedFile()">Lưu và tải file</button>
-</div>
+    <section id="tab-edit" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-edit">
+      <label for="editFileInput">Chọn file để sửa:</label>
+      <input type="file" id="editFileInput" aria-describedby="editFileDesc" />
+      <small id="editFileDesc" style="color:#6fa8dc; display:block; margin-bottom:16px;">Chọn file văn bản để tải lên và sửa.</small>
+      <div id="editSection" style="display:none;">
+        <label for="editFilename">Tên file (không bao gồm đuôi):</label>
+        <input type="text" id="editFilename" autocomplete="off" />
+        <label for="editExtension">Đuôi file:</label>
+        <input type="text" id="editExtension" autocomplete="off" />
+        <label for="editContent">Nội dung:</label>
+        <textarea id="editContent"></textarea>
+        <button id="saveEditBtn" type="button" aria-label="Lưu file đã chỉnh sửa">Lưu file</button>
+      </div>
+    </section>
 
-<div id="tab2" class="tab-content" style="display:none">
-  <label for="uploadEncryptFile">Chọn file cần mã hóa:</label>
-  <input type="file" id="uploadEncryptFile" accept="*/*">
-  <label for="encryptionKey">Khóa mã hóa (bảo mật cao):</label>
-  <input type="text" id="encryptionKey" placeholder="Nhập mật khẩu mã hóa">
-  <label for="customExt">Đuôi file mã hóa (mặc định: aes):</label>
-  <input type="text" id="customExt" placeholder="vd: aes">
-  <button id="encryptFileBtn">Mã hóa & Tải File</button>
-</div>
+    <section id="tab-encrypt" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-encrypt">
+      <label for="encryptFileInput">Chọn file để mã hóa:</label>
+      <input type="file" id="encryptFileInput" />
+      <label for="encryptKey">Mật khẩu AES:</label>
+      <input type="password" id="encryptKey" autocomplete="new-password" />
+      <label for="encryptExtension">Đuôi file xuất (ví dụ: enc):</label>
+      <input type="text" id="encryptExtension" placeholder="ví dụ: enc" autocomplete="off" />
+      <button id="encryptBtn" type="button" aria-label="Mã hóa và tải file">Mã hóa và Tải về</button>
+    </section>
 
+    <section id="tab-decrypt" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-decrypt">
+      <label for="decryptFileInput">Chọn file để giải mã (AES):</label>
+      <input type="file" id="decryptFileInput" />
+      <label for="decryptKey">Mật khẩu AES:</label>
+      <input type="password" id="decryptKey" autocomplete="current-password" />
+      <label for="decryptExtension">Đuôi file xuất (ví dụ: txt):</label>
+      <input type="text" id="decryptExtension" placeholder="ví dụ: txt" autocomplete="off" />
+      <button id="decryptBtn" type="button" aria-label="Giải mã và tải file">Giải mã và Tải về</button>
+    </section>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-function openTab(index) {
-  const tabs = document.querySelectorAll('.tab-content');
-  const buttons = document.querySelectorAll('.tabs button');
-  tabs.forEach((tab, i) => tab.style.display = i === index ? 'block' : 'none');
-  buttons.forEach((btn, i) => btn.classList.toggle('active', i === index));
-}
+  // Tab navigation & accessibility
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-function saveNewFile() {
-  const content = document.getElementById('newContent').value;
-  const name = document.getElementById('newName').value.trim();
-  const ext = document.getElementById('newExt').value.trim();
-  if (!name || !ext) return alert('Vui lòng nhập tên và đuôi file');
-  const blob = new Blob([content], { type: 'text/plain' });
-  saveAs(blob, `${name}.${ext}`);
-}
+  function activateTab(tab) {
+    tabs.forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    tab.setAttribute('tabindex', '0');
 
-const editFile = document.getElementById('editFile');
-editFile.addEventListener('change', () => {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('editContent').value = e.target.result;
-  };
-  reader.readAsText(editFile.files[0]);
-});
+    const target = tab.getAttribute('data-tab');
+    tabContents.forEach(c => {
+      if (c.id === target) {
+        c.classList.add('active');
+        c.focus();
+      } else {
+        c.classList.remove('active');
+      }
+    });
+  }
 
-function saveEditedFile() {
-  const content = document.getElementById('editContent').value;
-  const name = document.getElementById('editName').value.trim();
-  const ext = document.getElementById('editExt').value.trim();
-  if (!name || !ext) return alert('Vui lòng nhập tên và đuôi file');
-  const blob = new Blob([content], { type: 'text/plain' });
-  saveAs(blob, `${name}.${ext}`);
-}
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => activateTab(tab));
+    tab.addEventListener('keydown', e => {
+      let idx = Array.from(tabs).indexOf(e.target);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        let nextIdx = (idx + 1) % tabs.length;
+        tabs[nextIdx].focus();
+        activateTab(tabs[nextIdx]);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        let prevIdx = (idx - 1 + tabs.length) % tabs.length;
+        tabs[prevIdx].focus();
+        activateTab(tabs[prevIdx]);
+      }
+    });
+  });
 
-const uploadEncryptFile = document.getElementById('uploadEncryptFile');
-const encryptFileBtn = document.getElementById('encryptFileBtn');
-const encryptionKeyInput = document.getElementById('encryptionKey');
+  // Tạo file
+  document.getElementById('createBtn').addEventListener('click', () => {
+    const name = document.getElementById('newFilename').value.trim();
+    const ext = document.getElementById('newExtension').value.trim();
+    const content = document.getElementById('newContent').value;
+    if (!name) { alert('Vui lòng nhập tên file.'); return; }
+    let extension = ext.startsWith('.') ? ext.substring(1) : ext;
+    if (!extension) extension = 'txt';
+    const filename = name + '.' + extension;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
 
-encryptFileBtn.addEventListener('click', () => {
-  const file = uploadEncryptFile.files[0];
-  const key = encryptionKeyInput.value.trim();
-  const customExt = document.getElementById('customExt').value.trim() || 'aes';
+  // Sửa file
+  const editFileInput = document.getElementById('editFileInput');
+  const editSection = document.getElementById('editSection');
+  editFileInput.addEventListener('change', () => {
+    const file = editFileInput.files[0];
+    if (!file) return;
+    const filename = file.name;
+    const lastDot = filename.lastIndexOf('.');
+    let name = filename, ext = '';
+    if (lastDot !== -1) {
+      name = filename.substring(0, lastDot);
+      ext = filename.substring(lastDot + 1);
+    }
+    document.getElementById('editFilename').value = name;
+    document.getElementById('editExtension').value = ext;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('editContent').value = e.target.result;
+      editSection.style.display = 'block';
+    };
+    reader.readAsText(file);
+  });
 
-  if (!file) return alert('Vui lòng chọn file');
-  if (!key) return alert('Vui lòng nhập khóa mã hóa');
+  document.getElementById('saveEditBtn').addEventListener('click', () => {
+    const name = document.getElementById('editFilename').value.trim();
+    const ext = document.getElementById('editExtension').value.trim();
+    const content = document.getElementById('editContent').value;
+    if (!name) { alert('Vui lòng nhập tên file.'); return; }
+    let extension = ext.startsWith('.') ? ext.substring(1) : ext;
+    if (!extension) extension = 'txt';
+    const filename = name + '.' + extension;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target.result;
-    const encrypted = CryptoJS.AES.encrypt(content, key).toString();
-    const nameNoExt = file.name.replace(/\.[^/.]+$/, '');
-    const blob = new Blob([encrypted], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, `${nameNoExt}.${customExt}`);
-  };
-  reader.readAsText(file);
-});
+  // Mã hóa file
+  document.getElementById('encryptBtn').addEventListener('click', () => {
+    const fileInput = document.getElementById('encryptFileInput');
+    const key = document.getElementById('encryptKey').value;
+    const ext = document.getElementById('encryptExtension').value.trim() || 'enc';
+    if (!fileInput.files[0]) { alert('Vui lòng chọn file để mã hóa.'); return; }
+    if (!key) { alert('Vui lòng nhập mật khẩu mã hóa.'); return; }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = e => {
+      const content = e.target.result;
+      // Mã hóa AES
+      const encrypted = CryptoJS.AES.encrypt(content, key).toString();
+      const blob = new Blob([encrypted], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = file.name.split('.').slice(0, -1).join('.') + '.' + ext;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    };
+    reader.readAsText(file);
+  });
+
+  // Giải mã file
+  document.getElementById('decryptBtn').addEventListener('click', () => {
+    const fileInput = document.getElementById('decryptFileInput');
+    const key = document.getElementById('decryptKey').value;
+    const ext = document.getElementById('decryptExtension').value.trim() || 'txt';
+    if (!fileInput.files[0]) { alert('Vui lòng chọn file để giải mã.'); return; }
+    if (!key) { alert('Vui lòng nhập mật khẩu giải mã.'); return; }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = e => {
+      const encrypted = e.target.result;
+      try {
+        const decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
+        if (!decrypted) throw new Error('Sai mật khẩu hoặc file không hợp lệ.');
+        const blob = new Blob([decrypted], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name.split('.').slice(0, -1).join('.') + '.' + ext;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      } catch {
+        alert('Giải mã thất bại! Vui lòng kiểm tra mật khẩu hoặc file.');
+      }
+    };
+    reader.readAsText(file);
+  });
 </script>
 </body>
 </html>
