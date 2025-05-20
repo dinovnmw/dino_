@@ -140,18 +140,25 @@
     }
 
     function switchTab(index) {
+      // Save current editor content before switching
+      if (tabs[currentTab]) {
+        tabs[currentTab].code = document.getElementById("editor").value;
+      }
       currentTab = index;
       renderTabs();
+      // Load editor content for the new tab
       document.getElementById("editor").value = tabs[currentTab].code;
       updatePreview();
     }
 
     function updateCode() {
+      // Only update the code for the current tab
       tabs[currentTab].code = document.getElementById("editor").value;
       updatePreview();
     }
 
     function updatePreview() {
+      // Only update the iframe for the active tab
       const iframe = document.getElementById("preview");
       iframe.srcdoc = tabs[currentTab].code;
     }
@@ -172,6 +179,8 @@
     }
 
     function saveTabs() {
+      // Save current editor content before saving to localStorage
+      tabs[currentTab].code = document.getElementById("editor").value;
       localStorage.setItem("tabs", JSON.stringify(tabs));
       alert("Đã lưu tất cả tab!");
     }
@@ -183,11 +192,24 @@
       else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
     }
 
+    // Initialize tabs if none exist
     if (tabs.length === 0) {
       tabs = [{ code: "<h1>Chào mừng!</h1><p>HTML Preview</p>" }];
     }
     renderTabs();
     switchTab(0);
+
+    // Use visibilitychange to freeze inactive tabs
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        // When the tab is not visible, clear the iframe to save resources
+        const iframe = document.getElementById("preview");
+        iframe.srcdoc = "";
+      } else {
+        // When the tab becomes visible, restore the current tab's content
+        updatePreview();
+      }
+    });
   </script>
 </body>
 </html>
