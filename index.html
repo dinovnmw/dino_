@@ -1,106 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>iPhone Camera Clone + AI Crop + Save</title>
-  <style>
-    body { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #fff; font-family: sans-serif; }
-    video, canvas { border-radius: 20px; box-shadow: 0 0 20px #000; max-width: 90vw; max-height: 60vh; }
-    .controls { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .controls > * { padding: 8px 12px; background: #222; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
-    input[type=range] { width: 100px; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Profile</title>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
-  <div class="controls">
-    <label>Zoom <input type="range" id="zoom" min="1" max="3" step="0.1" value="1"></label>
-    <label>Brightness <input type="range" id="brightness" min="0" max="2" step="0.1" value="1"></label>
-    <label>Sharpness <input type="range" id="sharpness" min="0" max="10" step="1" value="0"></label>
-    <button id="capture">📸 Chụp</button>
-    <button id="toggle-crop">✨ Auto-Crop OFF</button>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const zoomInput = document.getElementById('zoom');
-    const brightnessInput = document.getElementById('brightness');
-    const sharpnessInput = document.getElementById('sharpness');
-    const captureBtn = document.getElementById('capture');
-    const toggleCropBtn = document.getElementById('toggle-crop');
-    let autoCrop = false;
-    let bodyPixNet = null;
-    async function init() {
-      video.width = 640;
-      video.height = 480;
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
-      bodyPixNet = await bodyPix.load();
-    }
-    captureBtn.onclick = async () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.filter = `brightness(${brightnessInput.value})`;
-      ctx.drawImage(video, 0, 0);
-      if (sharpnessInput.value > 0) {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        sharpen(imageData, parseInt(sharpnessInput.value));
-        ctx.putImageData(imageData, 0, 0);
-      }
-      if (autoCrop) {
-        const segmentation = await bodyPixNet.segmentPerson(video);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-          if (segmentation.data[i / 4] === 0) { data[i + 3] = 0; }
-        }
-        ctx.putImageData(imageData, 0, 0);
-      }
-      const link = document.createElement('a');
-      link.download = 'photo.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    };
-    toggleCropBtn.onclick = () => {
-      autoCrop = !autoCrop;
-      toggleCropBtn.textContent = autoCrop ? "✨ Auto-Crop ON" : "✨ Auto-Crop OFF";
-    };
-    zoomInput.oninput = brightnessInput.oninput = () => {
-      video.style.transform = `scale(${zoomInput.value})`;
-      video.style.filter = `brightness(${brightnessInput.value})`;
-    };
-    function sharpen(imageData, level) {
-      const weights = [0, -1, 0, -1, 5, -1, 0, -1, 0];
-      const side = 3; const halfSide = 1;
-      const src = imageData.data; const sw = imageData.width; const sh = imageData.height;
-      const output = ctx.createImageData(sw, sh); const dst = output.data;
-      for (let y = 0; y < sh; y++) {
-        for (let x = 0; x < sw; x++) {
-          let r = 0, g = 0, b = 0;
-          for (let cy = 0; cy < side; cy++) {
-            for (let cx = 0; cx < side; cx++) {
-              const scy = y + cy - halfSide;
-              const scx = x + cx - halfSide;
-              if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
-                const srcOff = (scy * sw + scx) * 4;
-                const wt = weights[cy * side + cx] * level;
-                r += src[srcOff] * wt;
-                g += src[srcOff + 1] * wt;
-                b += src[srcOff + 2] * wt;
-              }
-            }
-          }
-          const dstOff = (y * sw + x) * 4;
-          dst[dstOff] = r; dst[dstOff + 1] = g; dst[dstOff + 2] = b; dst[dstOff + 3] = 255;
-        }
-      }
-      imageData.data.set(dst);
-    }
-    init();
-  </script>
+  <div class="card">
+    <div class="name">
+      <h1>Tôi là <p class="tx">Lưu Thị Lan</p></h1>
+      <h2>I'am a <strong>Teacher</strong></h2>
+      
+    </div>
+    
+    <div class="card-body">
+      <p><strong>Email:</strong> <hl>luulan82@gmail.com</hl></p>
+      <p><strong>Năm sinh:</strong> <hl>26/09/1982</hl></p>
+      <p><strong>Giới tính</strong> <hl>Nữ</hl></p>
+      
+    </div>
 </body>
 </html>
